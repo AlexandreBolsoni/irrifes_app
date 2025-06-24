@@ -1,0 +1,46 @@
+name: irrifes_app
+description: "A new Flutter project."
+publish_to: 'none' 
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  fl_chart: ^0.64.0
+  firebase_core: ^2.27.0
+  firebase_auth: ^4.17.0
+  cloud_firestore: ^4.15.0
+  cupertino_icons: ^1.0.8
+  flutter_svg: ^2.2.0
+  mask_text_input_formatter: ^2.5.0
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/img/logo-escrita.png"
+  remove_alpha_ios: true
+
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Questrial
+      fonts:
+        - asset: assets/fonts/Questrial-Regular.ttf
+
+  assets:
+    - assets/img/logo-verde.svg
+    - assets/img/logo-branca.svg
+    - assets/img/logo-escrita.svg

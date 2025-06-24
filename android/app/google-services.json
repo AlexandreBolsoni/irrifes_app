@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "413256586171",
+    "project_id": "irrifes-sensor",
+    "storage_bucket": "irrifes-sensor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:413256586171:android:a6fbc0c8bf80d3c5096a9e",
+        "android_client_info": {
+          "package_name": "com.example.irrifes_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8BVu0aeW3O4LqyJ1epfzy8Y4vw0JnBKs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
