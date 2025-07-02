@@ -18,6 +18,7 @@ dependencies:
   flutter_svg: ^2.2.0
   mask_text_input_formatter: ^2.5.0
   shared_preferences: ^2.2.2
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_launcher_icons: ^0.13.1
@@ -44,3 +45,4 @@ flutter:
     - assets/img/logo-verde.svg
     - assets/img/logo-branca.svg
     - assets/img/logo-escrita.svg
+    - assets/img/g-logo.png

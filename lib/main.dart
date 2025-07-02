@@ -5,6 +5,7 @@ import 'package:irrifes_app/screens/perfil-screen.dart';
 import 'screens/login-screen.dart';
 import 'screens/cadastro-screen.dart';
 import 'screens/home-screen.dart';
+import 'screens/editar-perfil.dart';
 
 
 void main() async {
@@ -28,6 +29,8 @@ class MyApp extends StatelessWidget {
         '/cadastro': (context) => CadastroScreen(),
         '/home': (context) => HomeScreen(),
         '/calcular': (context) => CalcularScreen(),
+        '/editar-perfil': (context) => EditarPerfilScreen(),
+
         '/perfil': (context) => PerfilScreen(),
       },
     );

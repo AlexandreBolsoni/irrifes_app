@@ -72,6 +72,25 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void loginComGoogle(BuildContext context) async {
+    _isLoading.value = true;
+
+    final sucesso = await _authService.loginComGoogle(context);
+
+    _isLoading.value = false;
+
+    if (sucesso) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Falha ao entrar com o Google')),
+      );
+    }
+  }
+
   void cadastrar(BuildContext context) {
     _authService.cadastrar(context);
   }
@@ -146,6 +165,32 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
                     contentPadding: EdgeInsets.zero,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => loginComGoogle(context),
+                    icon: Image.asset(
+                      'assets/img/g-logo.png',
+                      height: 24,
+                      width: 24,
+                    ),
+                    label: const Text(
+                      'Entrar com o Google',
+                      style: TextStyle(
+                        fontFamily: 'Questrial',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
                 ],
               ),

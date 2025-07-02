@@ -12,7 +12,20 @@
           "package_name": "com.example.irrifes_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "413256586171-jvfrfvs6al1dlmpmlk6ig0bibto572as.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.irrifes_app",
+            "certificate_hash": "5eb0c0abbf1e15eeeafdb81f1ff053947be45665"
+          }
+        },
+        {
+          "client_id": "413256586171-ck6h24hlphjnnskh7ab9rci9q15j6m3m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD8BVu0aeW3O4LqyJ1epfzy8Y4vw0JnBKs"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "413256586171-ck6h24hlphjnnskh7ab9rci9q15j6m3m.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "413256586171-kmakr1sld1dnbksdic1l5hd38ue94laj.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.irrifesApp"
+              }
+            }
+          ]
         }
       }
     }
