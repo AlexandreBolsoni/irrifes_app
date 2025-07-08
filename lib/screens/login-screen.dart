@@ -91,14 +91,13 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void cadastrar(BuildContext context) {
-    _authService.cadastrar(context);
+void cadastrarComEmail(BuildContext context) {
+    Navigator.pushNamed(context, '/cadastro');
   }
 
-  void recuperarSenha(BuildContext context) {
-    _authService.recuperarSenha(context);
+  void refazerSenha(BuildContext context) {
+    Navigator.pushNamed(context, '/refazer-senha');
   }
-
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -148,8 +147,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     cpfController: cpfController,
                     senhaController: senhaController,
                     onEntrar: () => entrar(context),
-                    onCadastrar: () => cadastrar(context),
-                    onPressed: () => recuperarSenha(context),
+                    onCadastrar: () => cadastrarComEmail(context),
+                    onPressed: () => refazerSenha(context),
                   ),
                   const SizedBox(height: 10),
                   CheckboxListTile(
@@ -210,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () => cadastrar(context),
+                      onPressed: () => cadastrarComEmail(context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFDCEFD9),
                         foregroundColor: const Color(0xFF359730),
@@ -232,7 +231,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
                   GestureDetector(
-                    onTap: () => recuperarSenha(context),
+                    onTap: () => refazerSenha(context),
                     child: const Text(
                       'Esqueci minha senha',
                       style: TextStyle(

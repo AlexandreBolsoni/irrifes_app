@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../widgets/bottom-nav.dart';
 import '../services/auth-service.dart';
 
-import 'editar-perfil.dart';
-
 class PerfilScreen extends StatefulWidget {
   const PerfilScreen({Key? key}) : super(key: key);
 
@@ -26,6 +24,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   Future<void> _carregarPerfil() async {
     final perfil = await _authService.getPerfil();
+    debugPrint('Perfil carregado: $perfil');
     setState(() {
       _perfil = perfil;
       _carregando = false;
@@ -120,33 +119,41 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           style: TextStyle(color: Colors.red),
                         ),
                       )
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 6,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("NOME", style: TextStyle(color: Colors.green)),
-                            Text(_perfil!['nome'] ?? 'Sem nome'),
-                            const Divider(),
-                            const Text(
-                              "SOBRENOME",
-                              style: TextStyle(color: Colors.green),
-                            ),
-                            Text(_perfil!['sobrenome'] ?? 'Sem sobrenome'),
-                            const Divider(),
-                            const Text("CPF", style: TextStyle(color: Colors.green)),
-                            Text(formatarCpf(_perfil!['cpf'] ?? '')),
-                            const Divider(),
-                            const Text(
-                              "TELEFONE",
-                              style: TextStyle(color: Colors.green),
-                            ),
-                            Text(formatarTelefone(_perfil!['telefone'] ?? '')),
-                            const Divider(),
-                          ],
+                    : Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("NOME", style: TextStyle(color: Colors.green)),
+                              Text(_perfil!['nome'] ?? 'Sem nome'),
+                              const Divider(),
+                              const Text("SOBRENOME", style: TextStyle(color: Colors.green)),
+                              Text(_perfil!['sobrenome'] ?? 'Sem sobrenome'),
+                              const Divider(),
+                              const Text("CPF", style: TextStyle(color: Colors.green)),
+                              Text(formatarCpf(_perfil!['cpf'] ?? '')),
+                              const Divider(),
+                              const Text("TELEFONE", style: TextStyle(color: Colors.green)),
+                              Text(formatarTelefone(_perfil!['telefone'] ?? '')),
+                              const Divider(),
+                              const Text('EMAIL', style: TextStyle(color: Colors.green)),
+                              Text(_perfil!['email'] ?? 'Sem email'),
+                              const Divider(),
+                              const Text('ÚLTIMO LOGIN', style: TextStyle(color: Colors.green)),
+                              Text(
+                                (_perfil!['lastSignInTime'] != null &&
+                                        _perfil!['lastSignInTime'].isNotEmpty)
+                                    ? DateTime.parse(_perfil!['lastSignInTime'])
+                                        .toLocal()
+                                        .toString()
+                                    : 'Não disponível',
+                              ),
+                              const Divider(),
+                              const Text('MÉTODO DE LOGIN', style: TextStyle(color: Colors.green)),
+                              Text(_perfil!['lastSignInMethod'] ?? 'Desconhecido'),
+                            ],
+                          ),
                         ),
                       ),
             const SizedBox(height: 30),
@@ -157,10 +164,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
               ),
               onPressed: () {
                 Navigator.pushNamed(context, '/editar-perfil');
@@ -175,10 +179,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
               ),
               onPressed: _logout,
               child: const Text('SAIR'),

@@ -6,7 +6,7 @@ import 'screens/login-screen.dart';
 import 'screens/cadastro-screen.dart';
 import 'screens/home-screen.dart';
 import 'screens/editar-perfil.dart';
-
+import 'screens/refazer-senha-screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,12 +25,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(fontFamily: 'Questrial'),
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginScreen(),          // rota raiz para login
+        '/': (context) => LoginScreen(), // rota raiz para login
         '/cadastro': (context) => CadastroScreen(),
         '/home': (context) => HomeScreen(),
         '/calcular': (context) => CalcularScreen(),
         '/editar-perfil': (context) => EditarPerfilScreen(),
-
+        '/refazer-senha': (context) => RefazerSenhaScreen(),
         '/perfil': (context) => PerfilScreen(),
       },
     );

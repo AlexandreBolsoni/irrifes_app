@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/area-model.dart';
-import '../widgets/card-area.dart';  // Ajuste o nome do arquivo se precisar
+import '../widgets/card-area.dart';
 import '../widgets/bottom-nav.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  AreaData? _selectedArea;
 
   final List<AreaData> areas = [
     AreaData(
@@ -85,29 +87,84 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
-  AreaData? _selectedArea;
-
   @override
   void initState() {
     super.initState();
     _selectedArea = areas.first;
+    _verificarPerfilIncompleto();
   }
 
-   void _onBottomNavTap(int index) {
-    if (index == _currentIndex) return; // evita reload se clicar na mesma aba
+  Future<void> _verificarPerfilIncompleto() async {
+    final prefs = await SharedPreferences.getInstance();
+    final incompleto = prefs.getBool('perfilIncompleto') ?? false;
+
+    if (incompleto) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final overlay = Overlay.of(context);
+
+        late OverlayEntry entry;
+
+        entry = OverlayEntry(
+          builder: (context) => Positioned(
+            top: MediaQuery.of(context).padding.top + 10,
+            left: 20,
+            right: 20,
+            child: Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.red[600],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Seu perfil está incompleto. Toque aqui para completar.',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        entry.remove();
+                        Navigator.pushNamed(context, '/editar-perfil');
+                      },
+                      child: const Text(
+                        'IR',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+
+        overlay.insert(entry);
+
+        Future.delayed(const Duration(seconds: 6), () {
+          if (entry.mounted) entry.remove();
+        });
+      });
+
+      await prefs.setBool('perfilIncompleto', false);
+    }
+  }
+
+  void _onBottomNavTap(int index) {
+    if (index == _currentIndex) return;
 
     setState(() {
       _currentIndex = index;
     });
 
-    // navegação
     if (index == 1) {
       Navigator.pushReplacementNamed(context, '/calcular');
     } else if (index == 2) {
       Navigator.pushReplacementNamed(context, '/perfil');
     }
-    // 0 é home, já estamos aqui
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

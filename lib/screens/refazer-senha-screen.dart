@@ -1,120 +1,159 @@
 import 'package:flutter/material.dart';
+import '../services/auth-service.dart';
 import '../widgets/card-refazer-senha.dart';
 
-class RefazerSenhaScreen extends StatelessWidget {
-  RefazerSenhaScreen({super.key});
-
-  final TextEditingController cpfController = TextEditingController();
-  final TextEditingController novaSenhaController = TextEditingController();
-  final TextEditingController repetirSenhaController = TextEditingController();
-  final TextEditingController codigoSmsController = TextEditingController();
-
-  void enviarSms() {
-    // Lógica para enviar SMS
-    print("Enviando SMS para número associado ao CPF...");
-  }
-
-  void salvarNovaSenha(BuildContext context) {
-    // Lógica para validar código e salvar nova senha
-    print("Salvando nova senha...");
-  }
+class RefazerSenhaScreen extends StatefulWidget {
+  const RefazerSenhaScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
+  State<RefazerSenhaScreen> createState() => _RefazerSenhaScreenState();
+}
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFDCEFD9),
-      body: Stack(
-        children: [
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  ClipPath(
-                    clipper: HeaderClipper(),
-                    child: Container(
-                      height: height * 0.25,
-                      color: const Color(0xFF359730),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'REFAZER SENHA',
-                    style: TextStyle(
-                      fontFamily: 'Questrial',
-                      color: Color(0xFF359730),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 30),
+class _RefazerSenhaScreenState extends State<RefazerSenhaScreen> {
+  final _authService = AuthService();
+  final TextEditingController _cpfController = TextEditingController();
+  final TextEditingController _novaSenhaController = TextEditingController();
+  final TextEditingController _confirmarSenhaController = TextEditingController();
+  final TextEditingController _codigoController = TextEditingController();
 
-                  CardRefazerSenha(
-                    cpfController: cpfController,
-                    novaSenhaController: novaSenhaController,
-                    repetirSenhaController: repetirSenhaController,
-                    codigoSmsController: codigoSmsController,
-                    onEnviarSms: enviarSms,
-                  ),
-                ],
-              ),
-            ),
+  String? email;
+  bool camposHabilitados = false;
+  bool codigoValidado = false;
+
+  void showSnack(String msg) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+
+  Future<void> verificarCPF() async {
+    final rawCpf = _cpfController.text.trim();
+    final cpf = rawCpf.replaceAll(RegExp(r'[^0-9]'), '');
+
+    final resultadoEmail = await _authService.buscarEmailPorCPF(cpf);
+    if (resultadoEmail == null) {
+      showSnack('CPF não encontrado');
+      return;
+    }
+
+    email = resultadoEmail;
+
+    final metodo = await _authService.verificarMetodoLogin(email!);
+    if (metodo == 'google') {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Login com Google'),
+          content: const Text(
+            'Essa conta utiliza login com Google e não pode alterar senha aqui.',
           ),
-
-          // Botão Salvar
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
-              color: const Color(0xFFDCEFD9),
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () => salvarNovaSenha(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF359730),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'SALVAR',
-                    style: TextStyle(
-                      fontFamily: 'Questrial',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.1,
-                    ),
-                  ),
-                ),
-              ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
             ),
+          ],
+        ),
+      );
+    } else if (metodo == 'email') {
+      setState(() => camposHabilitados = true);
+    } else {
+      showSnack('Método de login não suportado.');
+    }
+  }
+
+  Future<void> enviarCodigo() async {
+    if (email == null) return;
+
+    await _authService.enviarCodigoParaEmail(email!);
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Verificação'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Irá chegar um código de confirmação no e-mail:\n$email'),
+            const SizedBox(height: 10),
+            const Text('Escreva o código aqui:'),
+            const SizedBox(height: 5),
+            TextField(
+              controller: _codigoController,
+              decoration: const InputDecoration(
+                labelText: 'Código de verificação',
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final valido = await _authService.verificarCodigoEmail(
+                email!,
+                _codigoController.text.trim(),
+              );
+              if (valido) {
+                setState(() => codigoValidado = true);
+                Navigator.pop(context);
+                showSnack('Código confirmado. Agora você pode salvar a nova senha.');
+              } else {
+                showSnack('Código incorreto. Tente novamente.');
+              }
+            },
+            child: const Text('Confirmar'),
           ),
         ],
       ),
     );
   }
-}
 
-class HeaderClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 30);
-    path.quadraticBezierTo(size.width * 0.5, size.height + 30, size.width, size.height - 30);
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
+  Future<void> salvarSenha() async {
+    if (!codigoValidado) return showSnack('Código não confirmado');
+
+    final senha = _novaSenhaController.text.trim();
+    final confirmar = _confirmarSenhaController.text.trim();
+    if (senha != confirmar) return showSnack('As senhas não coincidem');
+
+    final sucesso = await _authService.redefinirSenhaEFazerLogin(
+      email!,
+      senha,
+      _cpfController.text.replaceAll(RegExp(r'[^0-9]'), ''),
+    );
+
+    if (sucesso) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
+      showSnack('Erro ao redefinir senha');
+    }
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Refazer Senha')),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            TextField(
+              controller: _cpfController,
+              decoration: const InputDecoration(labelText: 'CPF'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: verificarCPF,
+              child: const Text('Verificar CPF'),
+            ),
+            const SizedBox(height: 20),
+            if (camposHabilitados)
+              CardRefazerSenha(
+                novaSenhaController: _novaSenhaController,
+                confirmarSenhaController: _confirmarSenhaController,
+                onEnviarCodigo: enviarCodigo,
+                onSalvarSenha: salvarSenha,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
 }
