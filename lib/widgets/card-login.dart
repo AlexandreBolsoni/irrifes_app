@@ -2,19 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class CardLogin extends StatefulWidget {
-  final TextEditingController cpfController;
+  final TextEditingController loginController;
   final TextEditingController senhaController;
   final VoidCallback onEntrar;
-  final VoidCallback onCadastrar;
-  final VoidCallback onPressed;
 
   const CardLogin({
     super.key,
-    required this.cpfController,
+    required this.loginController,
     required this.senhaController,
     required this.onEntrar,
-    required this.onCadastrar,
-    required this.onPressed,
   });
 
   @override
@@ -22,8 +18,21 @@ class CardLogin extends StatefulWidget {
 }
 
 class _CardLoginState extends State<CardLogin> {
-  final cpfFormatter = MaskTextInputFormatter(mask: '###.###.###-##', filter: {"#": RegExp(r'[0-9]')});
   bool mostrarSenha = false;
+  bool isCpf = false;
+
+  final cpfFormatter = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  void _atualizarFormato(String value) {
+    final apenasNumeros = value.replaceAll(RegExp(r'\D'), '');
+
+    setState(() {
+      isCpf = apenasNumeros.length <= 11 && RegExp(r'^\d+$').hasMatch(value);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,24 +40,26 @@ class _CardLoginState extends State<CardLogin> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text(
-          'CPF',
+          'E-mail ou CPF',
           style: TextStyle(color: Colors.white),
         ),
         const SizedBox(height: 5),
         TextField(
-          controller: widget.cpfController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [cpfFormatter],
+          controller: widget.loginController,
+          keyboardType: TextInputType.emailAddress,
+          inputFormatters: isCpf ? [cpfFormatter] : [],
+          onChanged: _atualizarFormato,
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
+            hintText: 'Digite seu e-mail ou CPF',
             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
           ),
         ),
         const SizedBox(height: 15),
         const Text(
-          'SENHA',
+          'Senha',
           style: TextStyle(color: Colors.white),
         ),
         const SizedBox(height: 5),
@@ -58,6 +69,7 @@ class _CardLoginState extends State<CardLogin> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
+            hintText: 'Digite sua senha',
             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
             suffixIcon: IconButton(
@@ -90,8 +102,6 @@ class _CardLoginState extends State<CardLogin> {
             ),
           ),
         ),
-        const SizedBox(height: 10),
-
       ],
     );
   }

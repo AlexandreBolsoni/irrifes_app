@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom-nav.dart';  // ajuste o caminho conforme seu projeto
+import '../widgets/bottom-nav.dart';
+import '../widgets/card-add-area.dart'; // certifique-se que o caminho está correto
 
 class CalcularScreen extends StatefulWidget {
   const CalcularScreen({Key? key}) : super(key: key);
@@ -9,7 +10,7 @@ class CalcularScreen extends StatefulWidget {
 }
 
 class _CalcularScreenState extends State<CalcularScreen> {
-  int _currentIndex = 1; // índice da aba "Calcular"
+  int _currentIndex = 1;
 
   void _novaArea(BuildContext context) {
     Navigator.push(
@@ -19,13 +20,13 @@ class _CalcularScreenState extends State<CalcularScreen> {
   }
 
   void _onBottomNavTap(int index) {
-    if (index == _currentIndex) return; // se clicar na mesma aba, não faz nada
+    if (index == _currentIndex) return;
     switch (index) {
       case 0:
         Navigator.pushReplacementNamed(context, '/home');
         break;
       case 1:
-        // já estamos no calcular
+        // Já está na tela Calcular
         break;
       case 2:
         Navigator.pushReplacementNamed(context, '/perfil');
@@ -69,6 +70,7 @@ class _CalcularScreenState extends State<CalcularScreen> {
                 onPressed: () => _novaArea(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2CAC50),
+                  foregroundColor: Colors.white, // texto branco
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -101,44 +103,10 @@ class NovaAreaScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SafeArea(
+      body: const SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: const [
-              Text('Nome da Área:', style: TextStyle(color: Colors.green)),
-              Divider(),
-              SizedBox(height: 16),
-              Text('Tipo de Terreno:', style: TextStyle(color: Colors.green)),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  FilterChip(label: Text('Arenoso'), selected: false, onSelected: null),
-                  FilterChip(label: Text('Argila'), selected: false, onSelected: null),
-                  FilterChip(label: Text('Argila'), selected: false, onSelected: null),
-                  FilterChip(label: Text('Argila'), selected: false, onSelected: null),
-                  FilterChip(label: Text('Arenoso'), selected: false, onSelected: null),
-                  FilterChip(label: Text('Argila'), selected: false, onSelected: null),
-                ],
-              ),
-              SizedBox(height: 20),
-              Text('Espaçamento entre Linhas', style: TextStyle(color: Colors.green)),
-              Divider(),
-              SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: null,
-                style: ButtonStyle(
-                  backgroundColor: MaterialStatePropertyAll(Color(0xFF2CAC50)),
-                  shape: MaterialStatePropertyAll(
-                    RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
-                  ),
-                ),
-                child: Text('SALVAR'),
-              ),
-            ],
-          ),
+          padding: EdgeInsets.all(24),
+          child: CardAddArea(), // usamos o widget extraído
         ),
       ),
     );

@@ -11,14 +11,15 @@ class RefazerSenhaScreen extends StatefulWidget {
 
 class _RefazerSenhaScreenState extends State<RefazerSenhaScreen> {
   final _authService = AuthService();
-  final TextEditingController _cpfController = TextEditingController();
-  final TextEditingController _novaSenhaController = TextEditingController();
-  final TextEditingController _confirmarSenhaController = TextEditingController();
-  final TextEditingController _codigoController = TextEditingController();
+  final _cpfController = TextEditingController();
+  final _novaSenhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
+  final _codigoController = TextEditingController();
 
   String? email;
   bool camposHabilitados = false;
   bool codigoValidado = false;
+  bool carregando = false;
 
   void showSnack(String msg) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
@@ -27,28 +28,36 @@ class _RefazerSenhaScreenState extends State<RefazerSenhaScreen> {
     final rawCpf = _cpfController.text.trim();
     final cpf = rawCpf.replaceAll(RegExp(r'[^0-9]'), '');
 
+    if (cpf.length != 11) return showSnack('CPF inválido');
+
+    setState(() {
+      carregando = true;
+      camposHabilitados = false;
+      email = null;
+      codigoValidado = false;
+    });
+
     final resultadoEmail = await _authService.buscarEmailPorCPF(cpf);
     if (resultadoEmail == null) {
-      showSnack('CPF não encontrado');
-      return;
+      setState(() => carregando = false);
+      return showSnack('CPF não encontrado');
     }
 
     email = resultadoEmail;
-
     final metodo = await _authService.verificarMetodoLogin(email!);
+
+    setState(() {
+      carregando = false;
+    });
+
     if (metodo == 'google') {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
           title: const Text('Login com Google'),
-          content: const Text(
-            'Essa conta utiliza login com Google e não pode alterar senha aqui.',
-          ),
+          content: const Text('Essa conta usa Google e não pode redefinir a senha aqui.'),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
           ],
         ),
       );
@@ -62,52 +71,21 @@ class _RefazerSenhaScreenState extends State<RefazerSenhaScreen> {
   Future<void> enviarCodigo() async {
     if (email == null) return;
 
-    await _authService.enviarCodigoParaEmail(email!);
+    final enviado = await _authService.enviarCodigoParaEmail(email!);
+    if (!enviado) return showSnack('Erro ao enviar código');
 
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Verificação'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Irá chegar um código de confirmação no e-mail:\n$email'),
-            const SizedBox(height: 10),
-            const Text('Escreva o código aqui:'),
-            const SizedBox(height: 5),
-            TextField(
-              controller: _codigoController,
-              decoration: const InputDecoration(
-                labelText: 'Código de verificação',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              final valido = await _authService.verificarCodigoEmail(
-                email!,
-                _codigoController.text.trim(),
-              );
-              if (valido) {
-                setState(() => codigoValidado = true);
-                Navigator.pop(context);
-                showSnack('Código confirmado. Agora você pode salvar a nova senha.');
-              } else {
-                showSnack('Código incorreto. Tente novamente.');
-              }
-            },
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
-    );
+    showSnack('Código enviado para $email');
   }
 
   Future<void> salvarSenha() async {
-    if (!codigoValidado) return showSnack('Código não confirmado');
+    if (!codigoValidado) {
+      final valido = await _authService.verificarCodigoEmail(
+        email!,
+        _codigoController.text.trim(),
+      );
+      if (!valido) return showSnack('Código inválido');
+      setState(() => codigoValidado = true);
+    }
 
     final senha = _novaSenhaController.text.trim();
     final confirmar = _confirmarSenhaController.text.trim();
@@ -137,17 +115,21 @@ class _RefazerSenhaScreenState extends State<RefazerSenhaScreen> {
             TextField(
               controller: _cpfController,
               decoration: const InputDecoration(labelText: 'CPF'),
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: verificarCPF,
-              child: const Text('Verificar CPF'),
+              onPressed: carregando ? null : verificarCPF,
+              child: carregando
+                  ? const CircularProgressIndicator()
+                  : const Text('Verificar CPF'),
             ),
             const SizedBox(height: 20),
             if (camposHabilitados)
               CardRefazerSenha(
                 novaSenhaController: _novaSenhaController,
                 confirmarSenhaController: _confirmarSenhaController,
+                codigoController: _codigoController,
                 onEnviarCodigo: enviarCodigo,
                 onSalvarSenha: salvarSenha,
               ),

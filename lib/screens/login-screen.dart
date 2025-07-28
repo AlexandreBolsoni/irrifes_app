@@ -15,7 +15,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController cpfController = TextEditingController();
+  final TextEditingController loginController = TextEditingController();
   final TextEditingController senhaController = TextEditingController();
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
   final AuthService _authService = AuthService();
@@ -40,34 +40,37 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void entrar(BuildContext context) async {
-    final cpf = cpfController.text.replaceAll(RegExp(r'[^\d]'), '');
+    final login = loginController.text.trim();
     final senha = senhaController.text.trim();
+
+    String? email;
+    String? cpf;
+
+    if (RegExp(r'^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$').hasMatch(login)) {
+      cpf = login.replaceAll(RegExp(r'\D'), '');
+    } else {
+      email = login;
+    }
 
     _isLoading.value = true;
 
-    try {
-      final sucesso = await _authService.entrar(
-        cpf: cpf,
-        senha: senha,
-        manterLogado: manterLogado,
+    final sucesso = await _authService.entrar(
+      email: email,
+      cpf: cpf,
+      senha: senha,
+      manterLogado: manterLogado,
+    );
+
+    _isLoading.value = false;
+
+    if (sucesso) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen()),
       );
-
-      _isLoading.value = false;
-
-      if (sucesso) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => HomeScreen()),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('CPF ou senha inválidos')),
-        );
-      }
-    } catch (e) {
-      _isLoading.value = false;
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro no login: ${e.toString()}')),
+        const SnackBar(content: Text('Login ou senha inválidos')),
       );
     }
   }
@@ -91,13 +94,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-void cadastrarComEmail(BuildContext context) {
+  void cadastrarComEmail(BuildContext context) {
     Navigator.pushNamed(context, '/cadastro');
   }
 
   void refazerSenha(BuildContext context) {
     Navigator.pushNamed(context, '/refazer-senha');
   }
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -144,11 +148,9 @@ void cadastrarComEmail(BuildContext context) {
                   ),
                   const SizedBox(height: 30),
                   CardLogin(
-                    cpfController: cpfController,
+                    loginController: loginController,
                     senhaController: senhaController,
                     onEntrar: () => entrar(context),
-                    onCadastrar: () => cadastrarComEmail(context),
-                    onPressed: () => refazerSenha(context),
                   ),
                   const SizedBox(height: 10),
                   CheckboxListTile(
