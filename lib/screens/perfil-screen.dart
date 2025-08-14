@@ -24,7 +24,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   Future<void> _carregarPerfil() async {
     final perfil = await _authService.getPerfil();
-    debugPrint('Perfil carregado: $perfil');
     setState(() {
       _perfil = perfil;
       _carregando = false;
@@ -45,9 +44,63 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
   }
 
+  Future<void> _editarCampo(String campo, String label, String valorAtual) async {
+    final controller = TextEditingController(text: valorAtual);
+    final resultado = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Editar $label"),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(labelText: label),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancelar")),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text("Salvar")),
+        ],
+      ),
+    );
+
+    if (resultado != null && resultado.isNotEmpty) {
+    await _authService.atualizarPerfil({campo: resultado}, campo);
+      _carregarPerfil();
+    }
+  }
+
   Future<void> _logout() async {
     await _authService.sair();
     Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+  }
+
+  Future<void> _excluirConta() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Excluir conta"),
+        content: const Text(
+          "Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.",
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text("Cancelar")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Excluir"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      await _authService.excluirConta();
+      Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+    }
   }
 
   String formatarCpf(String cpf) {
@@ -62,6 +115,29 @@ class _PerfilScreenState extends State<PerfilScreen> {
       return '(${telefone.substring(0, 2)}) ${telefone.substring(2, 6)}-${telefone.substring(6)}';
     }
     return telefone;
+  }
+
+  Widget _campoPerfil(String titulo, String valor, String campo,
+      {bool podeEditar = true}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(titulo, style: const TextStyle(color: Colors.green)),
+              Text(valor.isEmpty ? 'Não informado' : valor),
+            ],
+          ),
+        ),
+        if (podeEditar)
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.grey),
+            onPressed: () => _editarCampo(campo, titulo, valor),
+          ),
+      ],
+    );
   }
 
   @override
@@ -90,9 +166,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       ? CircleAvatar(
                           radius: 50,
                           backgroundImage: NetworkImage(_perfil!['fotoUrl']),
-                          backgroundColor: Colors.transparent,
                         )
-                      : const Icon(Icons.account_circle, size: 100, color: Colors.white),
+                      : const Icon(Icons.account_circle,
+                          size: 100, color: Colors.white),
                   const SizedBox(height: 12),
                   const Text(
                     'MEUS DADOS',
@@ -121,65 +197,67 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       )
                     : Expanded(
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 6),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text("NOME", style: TextStyle(color: Colors.green)),
-                              Text(_perfil!['nome'] ?? 'Sem nome'),
+                              _campoPerfil("NOME", _perfil!['nome'] ?? '', 'nome'),
                               const Divider(),
-                              const Text("SOBRENOME", style: TextStyle(color: Colors.green)),
-                              Text(_perfil!['sobrenome'] ?? 'Sem sobrenome'),
+                              _campoPerfil("SOBRENOME",
+                                  _perfil!['sobrenome'] ?? '', 'sobrenome'),
                               const Divider(),
-                              const Text("CPF", style: TextStyle(color: Colors.green)),
-                              Text(formatarCpf(_perfil!['cpf'] ?? '')),
+                              _campoPerfil(
+                                  "CPF", formatarCpf(_perfil!['cpf'] ?? ''), 'cpf'),
                               const Divider(),
-                              const Text("TELEFONE", style: TextStyle(color: Colors.green)),
-                              Text(formatarTelefone(_perfil!['telefone'] ?? '')),
+                              _campoPerfil("TELEFONE",
+                                  formatarTelefone(_perfil!['telefone'] ?? ''),
+                                  'telefone'),
                               const Divider(),
-                              const Text('EMAIL', style: TextStyle(color: Colors.green)),
-                              Text(_perfil!['email'] ?? 'Sem email'),
+                              // EMAIL SEM EDIÇÃO
+                              _campoPerfil("EMAIL", _perfil!['email'] ?? '', 'email',
+                                  podeEditar: false),
                               const Divider(),
-                              const Text('ÚLTIMO LOGIN', style: TextStyle(color: Colors.green)),
+                              const Text('ÚLTIMO LOGIN',
+                                  style: TextStyle(color: Colors.green)),
                               Text(
-                                (_perfil!['lastSignInTime'] != null &&
-                                        _perfil!['lastSignInTime'].isNotEmpty)
-                                    ? DateTime.parse(_perfil!['lastSignInTime'])
+                                (_perfil!['lastSignInTime'] ?? '').isNotEmpty
+                                    ? DateTime.parse(
+                                            _perfil!['lastSignInTime'])
                                         .toLocal()
                                         .toString()
                                     : 'Não disponível',
                               ),
                               const Divider(),
-                              const Text('MÉTODO DE LOGIN', style: TextStyle(color: Colors.green)),
+                              const Text('MÉTODO DE LOGIN',
+                                  style: TextStyle(color: Colors.green)),
                               Text(_perfil!['lastSignInMethod'] ?? 'Desconhecido'),
                             ],
                           ),
                         ),
                       ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2CAC50),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/editar-perfil');
-              },
-              child: const Text('EDITAR'),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    borderRadius: BorderRadius.circular(30)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+              ),
+              onPressed: _excluirConta,
+              child: const Text('EXCLUIR CONTA'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
               ),
               onPressed: _logout,
               child: const Text('SAIR'),

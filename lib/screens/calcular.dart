@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom-nav.dart';
-import '../widgets/card-add-area.dart'; // certifique-se que o caminho está correto
+import '../widgets/card-add-area.dart';
+import '../services/area-service.dart';
 
 class CalcularScreen extends StatefulWidget {
   const CalcularScreen({Key? key}) : super(key: key);
@@ -11,12 +12,28 @@ class CalcularScreen extends StatefulWidget {
 
 class _CalcularScreenState extends State<CalcularScreen> {
   int _currentIndex = 1;
+  String? selectedAreaId;
+  List<Map<String, dynamic>> areas = [];
+  final AreaService _areaService = AreaService();
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAreas();
+  }
+
+  Future<void> fetchAreas() async {
+    final result = await _areaService.listarAreas();
+    setState(() {
+      areas = result;
+    });
+  }
 
   void _novaArea(BuildContext context) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const NovaAreaScreen()),
-    );
+    ).then((_) => fetchAreas()); // Atualiza a lista ao voltar
   }
 
   void _onBottomNavTap(int index) {
@@ -47,35 +64,70 @@ class _CalcularScreenState extends State<CalcularScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Dropdown de áreas
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   color: const Color(0xFF2CAC50),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
-                  children: const [
-                    Expanded(
+                child: DropdownButton<String>(
+                  value: selectedAreaId,
+                  hint: const Text(
+                    'Selecione a Área',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  isExpanded: true,
+                  dropdownColor: const Color(0xFF2CAC50),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                  underline: const SizedBox(),
+                  items: areas.map((area) {
+                    return DropdownMenuItem<String>(
+                      value: area['id'],
                       child: Text(
-                        'Selecione a Área',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
+                        area['nomeArea'],
+                        style: const TextStyle(color: Colors.white),
                       ),
-                    ),
-                    Icon(Icons.arrow_drop_down, color: Colors.white),
-                  ],
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedAreaId = value;
+                    });
+                  },
                 ),
               ),
+
               const SizedBox(height: 12),
+
+              // Botão Nova Área
               ElevatedButton(
                 onPressed: () => _novaArea(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2CAC50),
-                  foregroundColor: Colors.white, // texto branco
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
                 child: const Text('Nova Área'),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Botão Minhas Áreas
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, '/area');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[800],
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                child: const Text('Minhas Áreas'),
               ),
             ],
           ),
@@ -89,6 +141,7 @@ class _CalcularScreenState extends State<CalcularScreen> {
   }
 }
 
+// Tela para criar nova área
 class NovaAreaScreen extends StatelessWidget {
   const NovaAreaScreen({super.key});
 
@@ -106,7 +159,7 @@ class NovaAreaScreen extends StatelessWidget {
       body: const SafeArea(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: CardAddArea(), // usamos o widget extraído
+          child: CardAddArea(),
         ),
       ),
     );

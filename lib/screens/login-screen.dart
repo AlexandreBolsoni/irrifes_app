@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../widgets/card-login.dart';
 import '../widgets/card-loading.dart';
 import '../services/auth-service.dart';
 import 'home-screen.dart';
@@ -15,12 +13,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController loginController = TextEditingController();
-  final TextEditingController senhaController = TextEditingController();
   final ValueNotifier<bool> _isLoading = ValueNotifier(false);
   final AuthService _authService = AuthService();
-
-  bool manterLogado = false;
 
   @override
   void initState() {
@@ -35,42 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => HomeScreen()),
-      );
-    }
-  }
-
-  void entrar(BuildContext context) async {
-    final login = loginController.text.trim();
-    final senha = senhaController.text.trim();
-
-    String? email;
-    String? cpf;
-
-    if (RegExp(r'^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$').hasMatch(login)) {
-      cpf = login.replaceAll(RegExp(r'\D'), '');
-    } else {
-      email = login;
-    }
-
-    _isLoading.value = true;
-
-    final sucesso = await _authService.entrar(
-      email: email,
-      cpf: cpf,
-      senha: senha,
-      manterLogado: manterLogado,
-    );
-
-    _isLoading.value = false;
-
-    if (sucesso) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => HomeScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login ou senha inválidos')),
       );
     }
   }
@@ -92,14 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
         const SnackBar(content: Text('Falha ao entrar com o Google')),
       );
     }
-  }
-
-  void cadastrarComEmail(BuildContext context) {
-    Navigator.pushNamed(context, '/cadastro');
-  }
-
-  void refazerSenha(BuildContext context) {
-    Navigator.pushNamed(context, '/refazer-senha');
   }
 
   @override
@@ -135,39 +85,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
                   const Text(
-                    'ENTRADA',
+                    'BEM-VINDO',
                     style: TextStyle(
                       fontFamily: 'Questrial',
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 30),
-                  CardLogin(
-                    loginController: loginController,
-                    senhaController: senhaController,
-                    onEntrar: () => entrar(context),
-                  ),
-                  const SizedBox(height: 10),
-                  CheckboxListTile(
-                    value: manterLogado,
-                    onChanged: (value) {
-                      setState(() {
-                        manterLogado = value ?? false;
-                      });
-                    },
-                    title: const Text(
-                      'Manter-me logado',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 40),
                   ElevatedButton.icon(
                     onPressed: () => loginComGoogle(context),
                     icon: Image.asset(
@@ -191,57 +120,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
-              color: const Color(0xFF359730),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () => cadastrarComEmail(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFDCEFD9),
-                        foregroundColor: const Color(0xFF359730),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'CADASTRAR',
-                        style: TextStyle(
-                          fontFamily: 'Questrial',
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: () => refazerSenha(context),
-                    child: const Text(
-                      'Esqueci minha senha',
-                      style: TextStyle(
-                        fontFamily: 'Questrial',
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.underline,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 20,
                       ),
                     ),
                   ),
@@ -269,7 +150,12 @@ class HeaderClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     final path = Path();
     path.lineTo(0, size.height - 30);
-    path.quadraticBezierTo(size.width * 0.5, size.height + 30, size.width, size.height - 30);
+    path.quadraticBezierTo(
+      size.width * 0.5,
+      size.height + 30,
+      size.width,
+      size.height - 30,
+    );
     path.lineTo(size.width, 0);
     path.close();
     return path;

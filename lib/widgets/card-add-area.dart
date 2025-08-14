@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/area-service.dart';
+
 
 class CardAddArea extends StatefulWidget {
   const CardAddArea({super.key});
@@ -21,7 +23,7 @@ class _CardAddAreaState extends State<CardAddArea> {
 
   String? _terrenoSelecionado;
 
-  void _salvarArea() {
+  Future<void> _salvarArea() async {
     final nome = _nomeController.text.trim();
     final linha = double.tryParse(_linhaController.text.trim());
     final planta = double.tryParse(_plantaController.text.trim());
@@ -33,81 +35,145 @@ class _CardAddAreaState extends State<CardAddArea> {
       return;
     }
 
-    // Aqui você pode salvar no Firestore, por exemplo
-    print('Nome: $nome');
-    print('Espaçamento Linha: $linha');
-    print('Espaçamento Planta: $planta');
-    print('Tipo de Terreno: $_terrenoSelecionado');
+    try {
+      await AreaService().criarArea(
+        nomeArea: nome,
+        entreLinha: linha,
+        entrePlantas: planta,
+        tipoTerreno: _terrenoSelecionado!,
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Área salva com sucesso!')),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Área salva com sucesso!')),
+      );
+
+      Navigator.pop(context); // volta para a tela anterior após salvar
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar: $e')),
+      );
+    }
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(fontSize: 16, color: Colors.grey),
+      filled: true,
+      fillColor: const Color(0xFFDFF5E4),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide.none,
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
-
-    // Limpar campos ou navegar
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text('Nome da Área:', style: TextStyle(color: Colors.green)),
-        TextField(
-          controller: _nomeController,
-          decoration: const InputDecoration(
-            hintText: 'Ex: Lote 1',
-          ),
-        ),
-        const SizedBox(height: 16),
-
-        const Text('Tipo de Terreno:', style: TextStyle(color: Colors.green)),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: _tiposTerreno.map((tipo) {
-            return ChoiceChip(
-              label: Text(tipo),
-              selected: _terrenoSelecionado == tipo,
-              selectedColor: const Color(0xFF2CAC50),
-              onSelected: (_) {
-                setState(() => _terrenoSelecionado = tipo);
-              },
-              labelStyle: TextStyle(
-                color: _terrenoSelecionado == tipo ? Colors.white : Colors.black,
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Center(
+              child: Text(
+                'Cadastro de Nova Área',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
-            );
-          }).toList(),
-        ),
-
-        const SizedBox(height: 20),
-        const Text('Espaçamento entre Linhas (m)', style: TextStyle(color: Colors.green)),
-        TextField(
-          controller: _linhaController,
-          keyboardType: TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(hintText: 'Ex: 1.0'),
-        ),
-
-        const SizedBox(height: 20),
-        const Text('Espaçamento entre Plantas (m)', style: TextStyle(color: Colors.green)),
-        TextField(
-          controller: _plantaController,
-          keyboardType: TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(hintText: 'Ex: 0.3'),
-        ),
-
-        const SizedBox(height: 24),
-        ElevatedButton(
-          onPressed: _salvarArea,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF2CAC50),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
             ),
-          ),
-          child: const Text('SALVAR'),
+            const SizedBox(height: 24),
+
+            const Text('Nome da Área', style: TextStyle(fontSize: 17, color: Colors.black87, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            const Text('Identifique o lote ou plantação', style: TextStyle(fontSize: 13, color: Colors.black54)),
+            const SizedBox(height: 4),
+            TextField(
+              controller: _nomeController,
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+              decoration: _inputDecoration('Ex: Lote 01 - Milho Safra'),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text('Tipo de Terreno', style: TextStyle(fontSize: 17, color: Colors.black87, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            const Text('Escolha conforme análise do solo', style: TextStyle(fontSize: 13, color: Colors.black54)),
+            const SizedBox(height: 8),
+            Wrap(
+              alignment: WrapAlignment.start,
+              spacing: 8,
+              runSpacing: 8,
+              children: _tiposTerreno.map((tipo) {
+                return ChoiceChip(
+                  label: Text(
+                    tipo,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: _terrenoSelecionado == tipo ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  selected: _terrenoSelecionado == tipo,
+                  selectedColor: const Color(0xFF2CAC50),
+                  onSelected: (_) {
+                    setState(() => _terrenoSelecionado = tipo);
+                  },
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                );
+              }).toList(),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text('Espaçamento entre Linhas (m)', style: TextStyle(fontSize: 17, color: Colors.black87, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            const Text('Distância entre fileiras de plantio', style: TextStyle(fontSize: 13, color: Colors.black54)),
+            const SizedBox(height: 4),
+            TextField(
+              controller: _linhaController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+              decoration: _inputDecoration('Ex: 0.9'),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text('Espaçamento entre Plantas (m)', style: TextStyle(fontSize: 17, color: Colors.black87, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 4),
+            const Text('Distância entre plantas na mesma fileira', style: TextStyle(fontSize: 13, color: Colors.black54)),
+            const SizedBox(height: 4),
+            TextField(
+              controller: _plantaController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(fontSize: 16, color: Colors.black),
+              decoration: _inputDecoration('Ex: 0.3'),
+            ),
+
+            const SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _salvarArea,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2CAC50),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('SALVAR ÁREA'),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

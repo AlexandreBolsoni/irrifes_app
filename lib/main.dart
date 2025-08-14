@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:irrifes_app/screens/calcular.dart';
 import 'package:irrifes_app/screens/perfil-screen.dart';
 import 'screens/login-screen.dart';
-import 'screens/cadastro-screen.dart';
 import 'screens/home-screen.dart';
-import 'screens/editar-perfil.dart';
-import 'screens/refazer-senha-screen.dart';
+import 'screens/area-screen.dart';
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,12 +25,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(fontFamily: 'Questrial'),
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginScreen(), // rota raiz para login
-        '/cadastro': (context) => CadastroScreen(),
+        '/': (context) => LoginScreen(), // rota raiz para logi
         '/home': (context) => HomeScreen(),
+        '/area': (context) => MinhasAreasScreen(),
         '/calcular': (context) => CalcularScreen(),
-        '/editar-perfil': (context) => EditarPerfilScreen(),
-        '/refazer-senha': (context) => RefazerSenhaScreen(),
         '/perfil': (context) => PerfilScreen(),
       },
     );

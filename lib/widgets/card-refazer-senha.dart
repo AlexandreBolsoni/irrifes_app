@@ -6,6 +6,7 @@ class CardRefazerSenha extends StatelessWidget {
   final TextEditingController codigoController;
   final VoidCallback onEnviarCodigo;
   final VoidCallback onSalvarSenha;
+  final bool carregandoSalvarSenha;
 
   const CardRefazerSenha({
     super.key,
@@ -14,23 +15,12 @@ class CardRefazerSenha extends StatelessWidget {
     required this.codigoController,
     required this.onEnviarCodigo,
     required this.onSalvarSenha,
+    required this.carregandoSalvarSenha,
   });
 
   @override
   Widget build(BuildContext context) {
-/*************  ✨ Windsurf Command ⭐  *************/
-  /// Builds the widget tree for password reset card.
-  ///
-  /// This widget displays input fields for entering a new password, confirming
-  /// the password, and a verification code. It also includes buttons for sending
-  /// the verification code via email and saving the new password. The [novaSenhaController],
-  /// [confirmarSenhaController], and [codigoController] are used to manage the text input
-  /// for the new password, password confirmation, and verification code respectively.
-  /// The [onEnviarCodigo] callback is triggered when the "Enviar Código por E-mail"
-  /// button is pressed, and [onSalvarSenha] is triggered when the "Salvar Nova Senha"
-  /// button is pressed.
-
-/*******  c63a4480-e125-4f43-a384-43d652472692  *******/    return Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextField(
@@ -58,7 +48,9 @@ class CardRefazerSenha extends StatelessWidget {
         const SizedBox(height: 20),
         ElevatedButton(
           onPressed: onSalvarSenha,
-          child: const Text('Salvar Nova Senha'),
+          child: carregandoSalvarSenha
+              ? const CircularProgressIndicator(color: Colors.white)
+              : const Text('Salvar Nova Senha'),
         ),
       ],
     );
